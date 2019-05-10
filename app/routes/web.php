@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Register your routes here ...
+ * Register your web routes here ...
  */
 $app->get('/', ["ExampleController", "index"]);
 
@@ -14,6 +14,12 @@ $app->group("/auth", function() {
     $this->post("/logout", ["Auth\\LoginController", "logout"])
         ->setName("auth.logout")
         ->add("Auth\\UserMiddleware");
+
+    $this->group('/register', function() {
+        $this->get('', ["Auth\\RegisterController", "getRegister"])->setName('auth.register');
+        $this->post('', ["Auth\\RegisterController", "postRegister"]);
+        $this->get('/verify/{token}', ["Auth\\RegisterController", "verify"]);
+    })->add("Auth\\GuestMiddleware");
 
     $this->get("/home", ["Auth\\HomeController", "index"])
     ->setName("auth.home")

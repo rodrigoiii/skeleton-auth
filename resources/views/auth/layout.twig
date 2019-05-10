@@ -35,6 +35,8 @@
                                 <li><a href="javascript:void(0)" onclick="document.getElementById('auth-logout-form').submit()">Log out</a></li>
                             </ul>
                         </li>
+                    {% else %}
+                        <li><a href="{{ path_for('auth.register') }}">Register</a></li>
                     {% endif %}
                 </ul>
             </div>
