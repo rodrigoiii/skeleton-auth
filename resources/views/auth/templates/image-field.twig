@@ -3,7 +3,7 @@
 <img class="img-responsive" src="{{ img_src }}" alt="" id="output-img-element" width="100" />
 <div class="form-group has-feedback {{ old_input is not empty ? (errors[field_name] is not empty ? "has-error") }}">
     <label for="{{ field_name }}">{{ field_text is defined ?: str_title(field_name) }}</label>
-    <input type="file" name="{{ field_name }}" class="form-control"
+    <input type="file" name="{{ field_name }}" accept="image/gif,image/jpeg,image/png" class="form-control"
         {% if enabledQuickLoadImage is defined %}
             {% if enabledQuickLoadImage %}
                 onchange="quickLoadImage(this, document.getElementById('output-img-element'))"

@@ -31,7 +31,8 @@ class CreateTableAuthTokens extends AbstractMigration
         $table_exist = $this->hasTable('auth_tokens');
         if ($table_exist)
         {
-            $this->dropTable('auth_tokens');
+            $table = $this->table("auth_tokens");
+            $table->drop()->save();
         }
     }
 }

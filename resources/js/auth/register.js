@@ -42,6 +42,9 @@ var Register = {
       },
 
       messages: {
+        picture: {
+          accept: "Please choose only image type."
+        },
         first_name: {
           regex: "Please enter only letters."
         },

@@ -17,9 +17,9 @@ class RegisterRequest extends BaseRequest
         $inputs = $this->request->getParams();
 
         return [
-            'picture' => v::optional2(v::uploaded()->file()->image()->size(null, "5mb")),
-            'first_name' => v::notEmpty()->not(v::numeric()),
-            'last_name' => v::notEmpty()->not(v::numeric()),
+            'picture' => v::optionalFile(v::uploaded()->file()->image()->size(null, "5mb")),
+            'first_name' => v::notEmpty()->alpha(),
+            'last_name' => v::notEmpty()->alpha(),
             'email' => v::notEmpty()->email()->not(v::emailExist()),
             'password' => v::notEmpty()->passwordStrength(),
             'confirm_password' => v::notEmpty()->passwordMatch($inputs['password'])

@@ -1,6 +1,6 @@
 <?php
 
-namespace hApp\Controllers\Auth;
+namespace App\Controllers\Auth;
 
 use Core\BaseController;
 use Core\Log;
@@ -18,21 +18,20 @@ class JqueryValidationController extends BaseController
      */
     public function emailExist(Request $request)
     {
-        return "false";
-        // $params = $request->getParams();
-        // $invert = isset($params['invert']);
-        // $email_exception = isset($params['except']) ? $params['except'] : null;
+        $params = $request->getParams();
+        $invert = isset($params['invert']);
+        $email_exception = isset($params['except']) ? $params['except'] : null;
 
-        // if (isset($params['email']))
-        // {
-        //     $result = !$invert ?
-        //                 v::emailExist($email_exception)->validate($params['email']) :
-        //                 v::not(v::emailExist($email_exception))->validate($params['email']);
+        if (isset($params['email']))
+        {
+            $result = !$invert ?
+                        v::emailExist($email_exception)->validate($params['email']) :
+                        v::not(v::emailExist($email_exception))->validate($params['email']);
 
-        //     return $result ? "true" : "false";
-        // }
+            return $result ? "true" : "false";
+        }
 
-        // Log::error("Error: Email must be define on '/jv/email-exist' api.", 1);
-        // return "Parameter is missing!";
+        Log::error("Error: Email must be define on '/jv/email-exist' api.", 1);
+        return "Parameter is missing!";
     }
 }
