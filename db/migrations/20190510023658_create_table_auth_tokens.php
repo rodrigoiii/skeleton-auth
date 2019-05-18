@@ -12,7 +12,7 @@ class CreateTableAuthTokens extends AbstractMigration
     public function up()
     {
         $table = $this->table('auth_tokens')
-            ->addColumn('token', 'string', ['limit' => 13])
+            ->addColumn('token', 'string', ['limit' => 11 + 1 + 13]) // uniqid([ids] + "_")
             ->addColumn('is_used', 'boolean', ['default' => 0])
             ->addColumn('type', 'enum', ['values' => ["register", "reset-password"]])
             ->addColumn('payload', 'json', ['null' => true])

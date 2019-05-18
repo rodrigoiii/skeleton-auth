@@ -47,7 +47,7 @@ class Mailer
      * Set email subject
      *
      * @param  string $subject
-     * @return SampleMail
+     * @return Mailer
      */
     public function subject($subject)
     {
@@ -59,7 +59,7 @@ class Mailer
      * Set email senders
      *
      * @param  array $from
-     * @return SampleMail
+     * @return Mailer
      */
     public function from($from)
     {
@@ -71,7 +71,7 @@ class Mailer
      * Set email receivers
      *
      * @param  array $to
-     * @return SampleMail
+     * @return Mailer
      */
     public function to($to)
     {
@@ -80,12 +80,24 @@ class Mailer
     }
 
     /**
+     * Set the email message
+     * @param  string $message
+     * @return Mailer
+     */
+    protected function message($message)
+    {
+        $this->message = $message;
+        return $this;
+    }
+
+    /**
      * Set email message
      *
-     * @param  string $message
-     * @return SampleMail
+     * @param  string $twig_file
+     * @param  array $params
+     * @return Mailer
      */
-    public function message($twig_file, $params=[])
+    public function template($twig_file, $params=[])
     {
         $use_dist = filter_var(config("app.use_dist"), FILTER_VALIDATE_BOOLEAN);
         $path = resources_path($use_dist ? "dist-views" : "views");
@@ -105,7 +117,7 @@ class Mailer
      */
     public function send()
     {
-        $config = config('skeleton-mail');
+        $config = config('mailer');
 
         $mail_host = $config['host'];
         $mail_port = $config['port'];

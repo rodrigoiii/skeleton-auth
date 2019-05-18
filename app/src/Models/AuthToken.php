@@ -3,29 +3,46 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Core\Log;
 use Illuminate\Database\Eloquent\Model;
 
 class AuthToken extends Model
 {
     const TYPE_REGISTER = "register";
     const TYPE_RESET_PASSWORD = "reset-password";
+    const IS_USED = 1;
 
-    /**
-     * Define fillable columns to avoid
-     * mass assignment exception.
-     *
-     * @var array
-     */
     protected $fillable = ["token", "is_used", "type", "payload"];
 
-    /**
-     * Return model id
-     *
-     * @return integer
-     */
     public function getId()
     {
         return $this->id;
+    }
+
+    public function getPayload()
+    {
+        return $this->payload;
+    }
+
+    public function markTokenAsUsed()
+    {
+        $this->is_used = 1;
+        return $this->save();
+    }
+
+    public function scopeRegisterToken($query)
+    {
+        return $query->where('type', static::TYPE_REGISTER);
+    }
+
+    public function scopeResetPasswordToken($query)
+    {
+        return $query->where('type', static::TYPE_RESET_PASSWORD);
+    }
+
+    public function scopeToken($query, $token)
+    {
+        return $query->where('token', $token);
     }
 
     public function isExpired($seconds)
@@ -35,126 +52,68 @@ class AuthToken extends Model
 
     public function isUsed()
     {
-        return $this->is_used;
-    }
-
-    public function markTokenAsUsed()
-    {
-        $this->is_used = 1;
-        return $this->save();
-    }
-
-    public function getPayload()
-    {
-        return $this->payload;
+        return $this->is_used === static::IS_USED;
     }
 
     /**
      * Token is valid if:
-     * - existed
      * - not expired
      * - not used
      *
      * @return boolean [description]
      */
-    public function isValid($token, $seconds, $type)
+    public function isValid($token_lifespan, $enabled_log=false)
     {
-        $authToken = static::findRegisterToken($token);
-        $error_message = "";
-
-        // check if token exist
-        if (! is_null($authToken))
+        if ($enabled_log)
         {
-            $auth_config = config('sklt-auth');
-            $modules_config = $auth_config['modules'];
-
-            $is_token_expired = $modules_config['register']['token_expiration'] == false ? false : $authToken->isExpired($seconds);
-
-            // check if token not expired
-            if (!$is_token_expired)
+            if (!$this->isExpired($token_lifespan))
             {
-                // check if token is not already used
-                if (! $authToken->isUsed())
+                if (!$this->isUsed())
                 {
-                    $authToken->markTokenAsUsed();
-
-                    // save user info
-                    $user = $this->saveUserInfo(json_decode($authToken->getPayload(), true));
-
-                    if ($user instanceof User)
-                    {
-                        if ($modules_config['register']['is_log_in_after_register'])
-                        {
-                            // login user automatically
-                            Auth::logInByUserId($user->getId());
-                        }
-
-                        return $this->verifySuccess($response);
-                    }
-
-                    $error_message = "Error: Saving user info fail!";
+                    return true;
                 }
                 else
                 {
-                    $error_message = "Warning: Token " . $authToken->token . " is already used!";
+                    Log::warning("Warning: Token " . $this->token . " is already used!");
                 }
             }
             else
             {
-                $error_message = "Warning: Token " . $authToken->token . " is already expired!";
+                Log::warning("Warning: Token " . $this->token . " is already expired!");
             }
         }
-        else
-        {
-            $error_message = "Warning: Token " . $authToken->token . " is not exist!";
-        }
+
+        return !$this->isExpired($token_lifespan) && !$this->isUsed();
     }
 
-    public static function findRegisterToken($token)
+    public static function createRegisterToken($payload=[])
     {
-        return static::where('token', $token)
-                ->where('type', static::TYPE_REGISTER)
-                ->get()
-                ->last();
-    }
-
-    public static function findResetPasswordToken($token)
-    {
-        return static::where('token', $token)
-                ->where('type', static::TYPE_RESET_PASSWORD)
-                ->get()
-                ->last();
-    }
-
-    public static function createRegisterType($payload)
-    {
-        $authToken = static::create([
-            'token' => uniqid(),
+        $registerToken = static::create([
+            'token' => static::generateUniqueToken(),
             'type' => static::TYPE_REGISTER,
             'payload' => $payload
         ]);
 
-        return $authToken;
+        return $registerToken;
     }
 
-    public static function createResetPasswordType($payload)
+    public static function createResetPasswordToken($payload=[])
     {
-        $authToken = static::create([
-            'token' => uniqid(),
+        $resetPasswordToken = static::create([
+            'token' => static::generateUniqueToken(),
             'type' => static::TYPE_RESET_PASSWORD,
             'payload' => $payload
         ]);
 
-        return $authToken;
+        return $resetPasswordToken;
     }
 
-    public static function isRegisterTokenValid($token, $seconds)
+    public static function generateUniqueToken()
     {
-        return $this->isValid($token, $seconds, static::TYPE_REGISTER);
-    }
+        $last = static::all()->last();
 
-    public static function isResetPasswordTokenValid($token, $seconds)
-    {
-        return $this->isValid($token, $seconds, static::TYPE_RESET_PASSWORD);
+        $last_id = (string) !is_null($last) ? $last->getId() : 0;
+
+        return uniqid("{$last_id}_");
     }
 }

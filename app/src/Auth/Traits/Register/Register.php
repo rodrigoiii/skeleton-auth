@@ -6,8 +6,10 @@ use App\Auth\Auth;
 use App\Models\AuthToken;
 use App\Models\User;
 use App\Requests\RegisterRequest;
+use Core\Log;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Exception\NotFoundException;
 
 trait Register
 {
@@ -52,37 +54,44 @@ trait Register
         if ($config['is_verification_enabled'])
         {
             // create token register type
-            $authToken = AuthToken::createRegisterType(json_encode($data));
+            $authToken = AuthToken::createRegisterToken(json_encode($data));
 
             if ($authToken instanceof AuthToken)
             {
                 // send verification link
                 $recipient_num = $this->sendVerificationLink($authToken);
 
-                return $recipient_num > 0 ?
-                        $this->sendEmailLinkSuccess($response) :
-                        $this->sendEmailLinkError($response, "Error: Sending email contains verification link fail.");
+                if ($recipient_num > 0)
+                {
+                    $this->flash->addMessage('success', "Success! Please check your email to verify your account.");
+                    return $response->withRedirect($this->router->pathFor('auth.login'));
+                }
             }
 
-            return $this->saveAuthTokenError($response, "Error: Saving Auth token fail!");
+            $this->flash->addMessage('error', "Registration not working properly this time. Please try again later.");
+            return $response->withRedirect($this->router->pathFor('auth.register'));
         }
 
         // else
-        $user = $this->saveUserInfo($data);
+        $user = User::create($data);
 
         if ($user instanceof User)
         {
+            $this->flash->addMessage('success', "Successfully Register!");
+
             if ($config['is_log_in_after_register'])
             {
                 // login user automatically
                 Auth::logInByUserId($user->getId());
-                return $this->registerSuccessRedirectToHome($response);
+
+                return $response->withRedirect($this->router->pathFor('auth.home'));
             }
 
-            return $this->registerSuccess($response);
+            return $response->withRedirect($this->router->pathFor('auth.login'));
         }
 
-        return $this->registerError($response, "Error: Saving user info fail!");
+        $this->flash->addMessage('error', "Registration not working properly this time. Please try again later.");
+        return $response->withRedirect($this->router->pathFor('auth.register'));
     }
 
     /**
@@ -95,57 +104,44 @@ trait Register
      */
     public function verify(Request $request, Response $response, $token)
     {
-        $authToken = AuthToken::findRegisterToken($token);
+        $authToken = AuthToken::registerToken()
+                            ->token($token)
+                            ->get()
+                            ->last();
 
-        $error_message = "";
-
-        // check if token exist
-        if (! is_null($authToken))
+        if (!is_null($authToken))
         {
             $config = config("auth.register");
 
-            $is_token_expired = $config['token_expiration'] == false ? false : $authToken->isExpired($config['token_expiration']);
-
-            // check if token not expired
-            if (!$is_token_expired)
+            if ($authToken->isValid($config['token_lifespan'], true))
             {
-                // check if token is not already used
-                if (! $authToken->isUsed())
+                $authToken->markTokenAsUsed();
+
+                // save user info
+                $user = User::create(json_decode($authToken->getPayload(), true));
+
+                if ($user instanceof User)
                 {
-                    $authToken->markTokenAsUsed();
-
-                    // save user info
-                    $user = $this->saveUserInfo(json_decode($authToken->getPayload(), true));
-
-                    if ($user instanceof User)
+                    if ($config['is_log_in_after_register'])
                     {
-                        if ($config['is_log_in_after_register'])
-                        {
-                            // login user automatically
-                            Auth::logInByUserId($user->getId());
-                            return $this->registerSuccessRedirectToHome($response);
-                        }
+                        // login user automatically
+                        Auth::logInByUserId($user->getId());
 
-                        return $this->verifySuccess($response);
+                        $this->flash->addMessage('success', "Successfully Register!");
+                        return $response->withRedirect($this->router->pathFor('auth.home'));
                     }
 
-                    $error_message = "Error: Saving user info fail!";
+                    $this->flash->addMessage('success', "Your account has been verified. Please login using your new account.");
+                    return $response->withRedirect($this->router->pathFor('auth.login'));
                 }
                 else
                 {
-                    $error_message = "Warning: Token " . $authToken->token . " is already used!";
+                    Log::error("Error: Saving user fail!");
                 }
             }
-            else
-            {
-                $error_message = "Warning: Token " . $authToken->token . " is already expired!";
-            }
-        }
-        else
-        {
-            $error_message = "Warning: Token " . $authToken->token . " is not exist!";
         }
 
-        return $this->verifyError($request, $response, $error_message);
+        throw new NotFoundException($request, $response);
+        exit;
     }
 }

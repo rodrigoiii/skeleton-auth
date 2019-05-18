@@ -19,6 +19,11 @@ $dotEnv->required("USE_DIST")->isBoolean();
 $dotEnv->required("APP_STATUS_UP")->isBoolean();
 $dotEnv->required("DEBUG_BAR_ON")->isBoolean();
 
+$dotEnv->required("MAIL_HOST");
+$dotEnv->required("MAIL_PORT");
+$dotEnv->required("MAIL_USERNAME");
+$dotEnv->required("MAIL_PASSWORD");
+
 # application instance
 $app = new Core\App;
 $app->loadDatabaseConnection();
