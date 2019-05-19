@@ -1,0 +1,22 @@
+<?php
+
+namespace SkeletonMailApp;
+
+use SkeletonMail\SkeletonMail;
+
+class {{mail}} extends SkeletonMail
+{
+    public function __construct()
+    {
+        $this->subject("Email Subject");
+        $this->from(['sender email' => "sender fullname"]);
+        $this->to(['receiver email' => "receiver fullname"]);
+        $this->message("email message");
+
+        /**
+         * You can use the source file and make it template of the email
+         * Just make sure the source file is in the resources/views/emails folder.
+         */
+        // $this->messageSourceFile("sample-email.twig", ['name' => "Foo Bar"]);
+    }
+}

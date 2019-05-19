@@ -19,6 +19,11 @@ $dotEnv->required("USE_DIST")->isBoolean();
 $dotEnv->required("APP_STATUS_UP")->isBoolean();
 $dotEnv->required("DEBUG_BAR_ON")->isBoolean();
 
+$dotEnv->required("MAIL_HOST");
+$dotEnv->required("MAIL_PORT");
+$dotEnv->required("MAIL_USERNAME");
+$dotEnv->required("MAIL_PASSWORD");
+
 # application instance
 $app = new Core\App;
 $app->loadDatabaseConnection();
@@ -42,7 +47,11 @@ if (is_dev() && filter_var(env('DEBUG_BAR_ON'), FILTER_VALIDATE_BOOLEAN) && PHP_
 }
 
 # routes
-require app_path("routes.php");
+require app_path("routes/web.php");
+$app->group("/api", function() use ($app) {
+    require app_path("routes/api.php");
+});
+
 
 # run the application
 $app->run();
