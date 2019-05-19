@@ -1,8 +1,8 @@
 <?php
 
-namespace SkeletonMailApp\Console\Commands;
+namespace Core\Console\Commands;
 
-use SkeletonCore\BaseCommand;
+use Core\BaseCommand;
 use Symfony\Component\Console\Input\InputInterface as Input;
 use Symfony\Component\Console\Output\OutputInterface as Output;
 
@@ -43,7 +43,7 @@ class MakeMailCommand extends BaseCommand
 
         try {
             if (!preg_match("/^[A-Z]\w*$/", $mail)) throw new \Exception("Error: Invalid mail name. It must be Characters and PascalCase.", 1);
-            if (file_exists(app_path("SkeletonMail/{$mail}.php"))) throw new \Exception("Error: The mail name is already created.", 1);
+            if (file_exists(app_path("src/Mailer/{$mail}.php"))) throw new \Exception("Error: The mail name is already created.", 1);
 
             $is_created = $this->makeTemplate($mail);
 
@@ -70,12 +70,12 @@ class MakeMailCommand extends BaseCommand
                 '{{mail}}' => $mail
             ]);
 
-            if (!file_exists(app_path("SkeletonMail")))
+            if (!file_exists(app_path("src/Mailer")))
             {
-                mkdir(app_path("SkeletonMail"), 0755, true);
+                mkdir(app_path("src/Mailer"), 0755, true);
             }
 
-            $file_path = app_path("SkeletonMail/{$mail}.php");
+            $file_path = app_path("src/Mailer/{$mail}.php");
 
             $file = fopen($file_path, "w");
             fwrite($file, $template);
