@@ -35,6 +35,10 @@
                                 <li><a href="javascript:void(0)" onclick="document.getElementById('auth-logout-form').submit()">Log out</a></li>
                             </ul>
                         </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ path_for('auth.forgot-password') }}">Forgot Password</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>

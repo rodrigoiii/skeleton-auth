@@ -12,7 +12,10 @@ module.exports = {
   scripts: {
     entries_array: [
       "auth/auth",
-      "auth/login"
+      "auth/login",
+      "auth/forgot-password",
+      "auth/reset-password",
+      "auth/jquery-validation/add-methods"
     ],
     dest: "public/js",
     options: {
