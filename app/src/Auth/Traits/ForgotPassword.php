@@ -6,7 +6,6 @@ use App\Mailer\ResetPassword;
 use App\Models\AuthToken;
 use App\Models\User;
 use Core\Log;
-use Psr\Http\Message\ResponseInterface as Response;
 
 trait ForgotPassword
 {
