@@ -2,7 +2,7 @@ var JvBs3 = require("./helpers/JvBs3");
 
 var Register = {
   init: function() {
-    Register.initValidation();
+    // Register.initValidation();
   },
 
   initValidation: function() {
@@ -12,7 +12,6 @@ var Register = {
 
       rules: {
         picture: {
-          required: true,
           accept: "image/gif,image/jpeg,image/png",
           file_size: {
             max_size: 5000000, // 5mb

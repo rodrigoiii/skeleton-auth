@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Auth\Traits\Register;
+namespace App\Auth\Traits;
 
 use App\Mailer\RegisterVerification;
 use App\Models\AuthToken;
 use Core\Log;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 
-trait Handler
+trait Register
 {
     /**
      * Send verification link handler
