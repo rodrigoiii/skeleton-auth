@@ -21,7 +21,7 @@
   "devDependencies": {
     "bootstrap": "^3.4.1",
     "fstream": "^1.0.12",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "js-yaml": "^3.13.1",
     "sponge-rod": "^3.10.1",
     "tar": "^4.4.2",
